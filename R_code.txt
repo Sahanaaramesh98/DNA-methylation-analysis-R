@@ -1,0 +1,84 @@
+#Installing libraries
+>library(GEOquery)
+
+>gse <- getGEO("GSE21653", GSEMatrix = TRUE) GSE192812
+>show(gse)
+
+>filePaths = getGEOSuppFiles("GSE21653")
+>filePaths
+
+>gse <- getGEO("GSE120062", GSEMatrix = TRUE) 
+>show(gse)
+>filePaths = getGEOSuppFiles("GSE120062")
+>filePaths
+
+>if (!requireNamespace("ggplot2", quietly = TRUE))
+    install.packages("ggplot2")
+>library(ggplot2)
+
+#Loading the champ package
+>if (!requireNamespace("BiocManager", quietly=TRUE))
+    install.packages("BiocManager")
+>library("ChAMP")
+
+#This will download the idat red and green files along with beta values csv file in the directory
+
+#Loading dataset
+>load("C:/Users/HP/OneDrive - Manipal Academy of Higher Education/Documents/CHAMP_RESULT/myDMP.rda")
+
+>dmpData <- myDMP$C_to_T
+
+
+#Loading the dataset
+>myLoad <- champ.load(testDir)
+>CpG.GUI()
+>champ.QC() # Alternatively: QC.GUI()
+>myNorm <- champ.norm()
+>champ.SVD()
+# If Batch detected, run champ.runCombat() here.
+
+#Differential methylation analysis
+>myDMP <- champ.DMP()
+>DMP.GUI()
+>myDMR <- champ.DMR()
+>DMR.GUI()
+
+#Hypermethylated and hypomethylated genes
+#Gene names and corresponding delta beta values
+>gene_names <- c("PURA", "MECOM", "FLJ10661", "APBA2", "C1orf127", "MYL5", "MGC14436", "LYNX1", "SH3BP4", "FAM12A",
+                "ITIH5", "CSMD1", "KIAA0562", "ATG12", "PRKAG2", "ONECUT3", "C15orf17", "PTGDS", "MYL5", "RAE1",
+                "ITGB2", "PTPRN2", "CRYL1", "OSBPL10", "LYPD1", "FAM20C", "OR51G1", "OR10C1", "ZBTB20", "EBF3")
+>delta_beta_values <- c(0.438517158, -0.367909381, -0.204926612, 0.171963515, 0.249311822, 0.167406767, 0.115542582,
+                       0.247897799, 0.160682771, 0.173410838, 0.112774065, 0.196742966, 0.18794629, 0.123358962,
+                       0.105351927, 0.118702948, 0.136320687, 0.101584814, 0.159862749, 0.119414675, 0.134579435,
+                       -0.163634321, 0.12266319, 0.141161826, 0.231627734, 0.113823377, 0.150888184, 0.122551942,
+                       0.11818855, 0.155173459)
+
+# Classify genes as hypermethylated, hypomethylated, or unchanged based on threshold
+>threshold <- 0.1
+>methylation_status <- ifelse(delta_beta_values > threshold, "Hypermethylated",
+                             ifelse(delta_beta_values < -threshold, "Hypomethylated", "Unchanged"))
+
+# Create a dataframe
+>df <- data.frame(gene_names, delta_beta_values, methylation_status)
+
+# Plot hypermethylated and hypomethylated genes
+>ggplot(df, aes(x=gene_names, y=delta_beta_values, fill=methylation_status)) +
+  geom_bar(stat="identity", position="dodge") +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1)) +  # Rotate x-axis labels
+  labs(x="Gene Names", y="Delta Beta Values", title="Hypermethylated and Hypomethylated Genes")
+
+#Volcano plot
+>ggplot(dmpData, aes(x = deltaBeta, y = -log10(P.Value))) +
+  geom_point(alpha = 0.5) +
+  theme_minimal() +
+  labs(title = "Volcano Plot of DMPs",
+       x = "Delta Beta (Methylation Difference)",
+       y = "-log10(P-value)") +
+  geom_hline(yintercept = -log10(0.05), linetype = "dashed", color = "red") +
+  geom_vline(xintercept = c(-0.2, 0.2), linetype = "dashed", color = "blue")
+
+
+
+
+
